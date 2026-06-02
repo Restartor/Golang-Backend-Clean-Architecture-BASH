@@ -1,29 +1,57 @@
-# go-clean-arch
+<div align="center">
 
-A one-command scaffolder for Go backend projects following clean architecture conventions.
-Runs as a global shell command — no Go install, no dependencies, just bash.
+# 🏗️ go-clean-arch
 
-```bash
-go-clean-arch web-streaming github.com/rafi/web-streaming
+**One-command scaffolder for Go backend projects with clean architecture**
+
+[![Shell](https://img.shields.io/badge/shell-bash%20%7C%20zsh-89e051?style=flat-square&logo=gnu-bash&logoColor=white)](https://www.gnu.org/software/bash/)
+[![Go](https://img.shields.io/badge/go-1.22+-00ADD8?style=flat-square&logo=go&logoColor=white)](https://go.dev)
+[![Platform](https://img.shields.io/badge/platform-linux%20%7C%20macOS-lightgrey?style=flat-square)]()
+[![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE)
+
+<br />
+
+Stop re-creating the same folder structure every project.
+Start from a clean, opinionated baseline that matches production Go backend conventions.
+
+</div>
+
+---
+
+## ⚡ Demo
+
+```console
+$ go-clean-arch web-streaming github.com/rafi/web-streaming
+
+🚀  Scaffolding: web-streaming
+📦  Module: github.com/rafi/web-streaming
+
+✅  Done! Project created at ./web-streaming
+
+Next steps:
+  cd web-streaming
+  cp .env.example .env
+  go mod tidy
+  go run ./cmd/api
 ```
 
-Generates a ready-to-run project with proper layering, sqlc config, env template, and a working `/health` endpoint.
+That's it. Folder structure, `go.mod`, `sqlc.yaml`, `.env.example`, `.gitignore`, and a working `/health` endpoint — all generated in under a second.
 
 ---
 
-## Why
+## 🎯 Why
 
-Stop re-creating the same folder structure every new project. Stop forgetting `.gitignore`, `.env.example`, or `sqlc.yaml`. Start from a clean, opinionated baseline that matches production Go backend conventions.
-
-Opinionated for:
-- **Clean architecture** — `handler → service → repository → entity`
-- **PostgreSQL + sqlc** — typed queries, no ORM magic
-- **JWT auth ready** — access + refresh expiry already in env template
-- **Redis-ready** — for token blacklist and rate limiting
+| Without `go-clean-arch` | With `go-clean-arch` |
+|---|---|
+| Manually `mkdir` 12+ folders | Single command |
+| Forget `.gitignore` half the time | Always included |
+| Copy-paste `sqlc.yaml` from old project | Pre-configured |
+| Inconsistent layout across projects | Enforced convention |
+| ~3 minutes setup per project | ~1 second |
 
 ---
 
-## Install
+## 📦 Install
 
 ```bash
 git clone https://github.com/Restartor/go-clean-arch.git
@@ -32,25 +60,40 @@ bash install.sh
 source ~/.bashrc   # or ~/.zshrc
 ```
 
-The installer copies the script to `~/.local/bin/go-clean-arch` and adds it to your `PATH`. No sudo, no system-wide changes.
+The installer copies the script to `~/.local/bin/go-clean-arch` and adds it to your `PATH`.
+**No sudo, no system-wide changes.**
 
 ---
 
-## Usage
+## 🚀 Usage
 
 ```bash
 go-clean-arch <project-name> [module-path]
 ```
 
-**Examples:**
+<table>
+<tr>
+<td>
 
+**Minimal**
 ```bash
-# minimal — module path defaults to github.com/youruser/<project-name>
 go-clean-arch my-api
-
-# with explicit module path
-go-clean-arch web-streaming github.com/rafi/web-streaming
 ```
+Module path defaults to
+`github.com/youruser/<project-name>`
+
+</td>
+<td>
+
+**With explicit module path**
+```bash
+go-clean-arch web-streaming \
+  github.com/rafi/web-streaming
+```
+
+</td>
+</tr>
+</table>
 
 After scaffolding:
 
@@ -65,7 +108,32 @@ go run ./cmd/api
 
 ---
 
-## What gets generated
+## 🧱 Architecture
+
+```mermaid
+flowchart LR
+    Client([Client])
+    H[handler]
+    S[service]
+    R[repository]
+    DB[(PostgreSQL)]
+
+    Client -->|HTTP| H
+    H -->|DTO| S
+    S -->|entity| R
+    R -->|sqlc| DB
+
+    style H fill:#3b82f6,stroke:#1e40af,color:#fff
+    style S fill:#10b981,stroke:#047857,color:#fff
+    style R fill:#f59e0b,stroke:#b45309,color:#fff
+    style DB fill:#6366f1,stroke:#4338ca,color:#fff
+```
+
+Dependencies always point **inward**. Inner layers never know about outer layers.
+
+---
+
+## 📁 What gets generated
 
 ```
 <project-name>/
@@ -96,34 +164,45 @@ go run ./cmd/api
 
 ---
 
-## Layer responsibilities
+## 🧩 Layer Responsibilities
 
 | Layer | Responsibility | Depends on |
 |---|---|---|
-| `handler` | Parse HTTP, call service, return response | `service`, `dto`, `response` |
-| `service` | Business logic, validation, orchestration | `repository`, `entity` |
-| `repository` | Data access only — no logic | `database`, `entity` |
-| `entity` | Pure domain structs | nothing |
-| `dto` | API request/response shapes | nothing |
-
-Dependencies always point **inward**. Inner layers never know about outer layers.
+| **handler** | Parse HTTP, call service, return response | `service`, `dto`, `response` |
+| **service** | Business logic, validation, orchestration | `repository`, `entity` |
+| **repository** | Data access only — no business logic | `database`, `entity` |
+| **entity** | Pure domain structs | _nothing_ |
+| **dto** | API request/response shapes | _nothing_ |
 
 ---
 
-## Requirements
+## 🔧 Stack assumptions
 
-- bash or zsh
-- Go 1.22+ (for the generated project, not the scaffolder)
+The scaffold is opinionated for:
+
+- 🐹 **Go 1.22+** with standard project layout
+- 🐘 **PostgreSQL + sqlc** — typed queries, no ORM magic
+- 🔐 **JWT auth** — access + refresh token expiry pre-configured
+- ⚡ **Redis-ready** — for token blacklist and rate limiting
+
+Don't need one of these? Just delete the folder. The scaffold is a starting point, not a cage.
 
 ---
 
-## Customization
+## 🛠️ Customization
 
-The script is a single bash file (`go-clean-arch.sh`). Fork it, edit the heredoc sections to match your own conventions — different Go version, different default port, extra layers, your own README template, etc.
+The entire scaffolder is a single bash file: [`go-clean-arch.sh`](./go-clean-arch.sh).
+
+Fork it, edit the heredoc sections to match your own conventions:
+- Different Go version
+- Different default port
+- Extra layers (`event/`, `notification/`, etc.)
+- Your own README template
+- Pre-installed dependencies (Gin, GORM, sqlx, ...)
 
 ---
 
-## Uninstall
+## 🗑️ Uninstall
 
 ```bash
 rm ~/.local/bin/go-clean-arch
@@ -133,6 +212,15 @@ Then remove the PATH line from your `~/.bashrc` or `~/.zshrc` if you no longer n
 
 ---
 
-## License
+## 📋 Requirements
 
-MIT
+- bash or zsh
+- Go 1.22+ _(for the generated project, not the scaffolder)_
+
+---
+
+<div align="center">
+
+**Built by [@Restartor](https://github.com/Restartor)** · MIT License
+
+</div>
